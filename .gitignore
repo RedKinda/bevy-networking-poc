@@ -15,4 +15,3 @@ crates/*/target
 .cargo/config
 /benches/target
 bin
-/client/Cargo.toml
