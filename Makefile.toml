@@ -1,0 +1,7 @@
+[tasks.run]
+command = "cargo"
+extend = "client/Makefile.toml"
+args = ["make", "serve"]
+
+[tasks.run_server]
+extend = "server/Makefile.toml"
