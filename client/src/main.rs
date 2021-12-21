@@ -38,13 +38,13 @@ pub fn main() {
 }
 
 fn startup_test(mut commands: Commands, assets: Res<AssetServer>) {
-    PlayerPointer::spawn(
-        &mut commands,
-        &0,
-        &Default::default(),
-        &NetworkSync { unique_id: 0 },
-        assets.load("player_pointer.png"),
-    );
+    // PlayerPointer::spawn(
+    //     &mut commands,
+    //     &0,
+    //     &Default::default(),
+    //     &NetworkSync { unique_id: 0 },
+    //     assets.load("player_pointer.png"),
+    // );
 }
 
 fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>) {
