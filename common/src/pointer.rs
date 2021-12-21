@@ -18,6 +18,7 @@ pub struct PlayerPointer {
 pub fn handle_pointer_spawns(
     mut commands: Commands,
     mut reader: EventReader<ServerEvent>,
+    #[cfg(not(feature = "headless"))]
     mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -27,6 +28,7 @@ pub fn handle_pointer_spawns(
                 info!("Player pointer locally spawned!");
                 PlayerPointer::spawn(
                     &mut commands,
+                    #[cfg(not(feature = "headless"))]
                     &mut materials,
                     owner,
                     location,
@@ -42,6 +44,7 @@ pub fn handle_pointer_spawns(
 impl PlayerPointer {
     pub fn spawn(
         commands: &mut Commands,
+        #[cfg(not(feature = "headless"))]
         materials: &mut ResMut<Assets<ColorMaterial>>,
         owner: &PlayerId,
         location: &Vec2,
