@@ -1,19 +1,21 @@
 mod internal_events;
 
-use std::net::SocketAddr;
-use std::time::Duration;
+use crate::internal_events::{Internal, InternalPlugin};
 use common::bevy::app::ScheduleRunnerSettings;
 use common::bevy::asset::AssetPlugin;
 use common::bevy::log::LogPlugin;
 use common::bevy::prelude::*;
 use common::bevy::utils::HashMap;
-use common::bevy_networking_turbulence::{NetworkResource, NetworkingPlugin, ConnectionHandle, NetworkEvent};
+use common::bevy_networking_turbulence::{
+    ConnectionHandle, NetworkEvent, NetworkResource, NetworkingPlugin,
+};
 use common::events::*;
-use common::game::{GameInfo, Movable, PlayerControllable, validate_player_command};
+use common::game::{validate_player_command, GameInfo, Movable, PlayerControllable};
 use common::get_random;
 use common::pointer::PlayerPointer;
 use common::protocol::{ClientIdentification, NetworkSync};
-use crate::internal_events::{Internal, InternalPlugin};
+use std::net::SocketAddr;
+use std::time::Duration;
 
 type ClientHandleMap = HashMap<ConnectionHandle, PlayerId>;
 type AssociatedCommand = (PlayerId, PlayerCommand);
@@ -24,26 +26,24 @@ pub fn main() {
     app.insert_resource(ScheduleRunnerSettings::run_loop(Duration::from_secs_f64(
         1.0 / 60.0,
     )))
-        .insert_resource(ClientHandleMap::default());
+    .insert_resource(ClientHandleMap::default());
 
     app.add_event::<AssociatedCommand>();
 
     app.add_plugins(MinimalPlugins)
-        .add_plugin(NetworkingPlugin{
+        .add_plugin(NetworkingPlugin {
             link_conditioner: None,
             message_flushing_strategy: Default::default(),
-            idle_timeout_ms: None,  //Some(7000),
+            idle_timeout_ms: None,   //Some(7000),
             auto_heartbeat_ms: None, //Some(2000),
-            heartbeats_and_timeouts_timestep_in_seconds: None
+            heartbeats_and_timeouts_timestep_in_seconds: None,
         })
         .add_plugin(LogPlugin::default())
         .add_plugin(AssetPlugin::default())
-        .add_plugin(common::game::GameEnginePlugin{})
-        .add_plugin(InternalPlugin{});
-
+        .add_plugin(common::game::GameEnginePlugin {})
+        .add_plugin(InternalPlugin {});
 
     app.add_startup_system(startup.system());
-
 
     app.add_system(handle_clients_commands.system())
         .add_system(sync_movable.system())
@@ -54,16 +54,12 @@ pub fn main() {
     app.run();
 }
 
-
 fn startup(mut net: ResMut<NetworkResource>, mut game_info: ResMut<GameInfo>) {
     common::protocol::network_setup(&mut net);
     game_info.is_network_authority = true;
 
-    let address = match common::bevy_networking_turbulence::find_my_ip_address() {
-        Some(ad) => ad,
-        None => "192.168.0.102".parse().unwrap()
-    };
-    //let address = "127.0.0.1".parse().unwrap();
+    let address = common::bevy_networking_turbulence::find_my_ip_address().unwrap();
+
     let server_address = SocketAddr::new(address, common::SERVER_PORT);
     info!("Server listening on {}", server_address);
 
@@ -74,13 +70,12 @@ fn startup(mut net: ResMut<NetworkResource>, mut game_info: ResMut<GameInfo>) {
     }
 
     net.listen(server_address, None, None);
-
 }
 
 fn handle_clients_commands(
     mut net: ResMut<NetworkResource>,
     mut player_command_queue: EventWriter<AssociatedCommand>,
-    client_player_map: Res<ClientHandleMap>
+    client_player_map: Res<ClientHandleMap>,
 ) {
     // info!("Handling clients...");
     for (handle, connection) in net.connections.iter_mut() {
@@ -98,7 +93,6 @@ fn handle_clients_commands(
                     error!("Client should never send a GameEvent!")
                 }
             }
-
 
             /*match network_event {
                 NetworkEvent::Packet(handle, packet) => {
@@ -133,10 +127,11 @@ fn broadcast_server_events(
     server_events.iter().for_each(|event| {
         info!(broadcasting = ?event);
         net.connections.iter_mut().for_each(|(_, conn)| {
-            conn.channels().unwrap().send::<GameEvent>(GameEvent::ServerUpdate(*event));
+            conn.channels()
+                .unwrap()
+                .send::<GameEvent>(GameEvent::ServerUpdate(*event));
         });
     });
-
 }
 
 fn handle_client_connections(
@@ -153,7 +148,6 @@ fn handle_client_connections(
                 handle_map.insert(*handle, new_id.player_id.clone());
 
                 internal_events.send(Internal::PlayerConnected(*handle, new_id));
-
             }
             NetworkEvent::Disconnected(handle) => {
                 info!("Client {} disconnected.", handle);
@@ -168,10 +162,9 @@ fn handle_client_connections(
     }
 }
 
-
 fn handle_client_move_commands(
     mut command_queue: EventReader<AssociatedCommand>,
-    mut query: Query<(&mut Movable, &mut PlayerControllable, &NetworkSync)>
+    mut query: Query<(&mut Movable, &mut PlayerControllable, &NetworkSync)>,
 ) {
     /*let mut movables: HashMap<NetworkObjectId, (Mut<Movable>, Mut<PlayerControllable>, &NetworkSync)>;
     query.iter_mut().for_each(|unit| {
@@ -199,7 +192,6 @@ fn handle_client_move_commands(
 
 
     })
-
 }
 
 fn broadcast_server_event(event_writer: &mut EventWriter<ServerEvent>, event: ServerEvent) {
@@ -209,14 +201,12 @@ fn broadcast_server_event(event_writer: &mut EventWriter<ServerEvent>, event: Se
 
 fn sync_movable(
     mut to_sync: Query<(&NetworkSync, &Movable, &Transform), (Changed<Movable>, With<NetworkSync>)>,
-    mut server_events: EventWriter<ServerEvent>
+    mut server_events: EventWriter<ServerEvent>,
 ) {
     for (netsync, &movable, &transform) in to_sync.iter_mut() {
-        broadcast_server_event(&mut server_events, ServerEvent::EntityMovementChange(
-            *netsync,
-            movable,
-            transform.translation
-        ));
-
+        broadcast_server_event(
+            &mut server_events,
+            ServerEvent::EntityMovementChange(*netsync, movable, transform.translation),
+        );
     }
 }
