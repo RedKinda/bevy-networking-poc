@@ -2,7 +2,6 @@ use common::bevy::prelude::*;
 use common::bevy_networking_turbulence::{NetworkEvent, NetworkResource, NetworkingPlugin};
 use common::events::*;
 use common::game::{Movable, PlayerControllable};
-use common::pointer::PlayerPointer;
 use common::protocol::*;
 use std::net::SocketAddr;
 
@@ -24,7 +23,6 @@ pub fn main() {
     app.add_plugin(common::bevy_webgl2::WebGL2Plugin);
 
     app.add_startup_system(startup.system());
-    app.add_startup_system(startup_test.system());
 
     app.insert_resource(common::protocol::ClientIdentification::new(0));
 
@@ -35,16 +33,6 @@ pub fn main() {
         .add_system(handle_movement_changes.system());
 
     app.run();
-}
-
-fn startup_test(mut commands: Commands, assets: Res<AssetServer>) {
-    // PlayerPointer::spawn(
-    //     &mut commands,
-    //     &0,
-    //     &Default::default(),
-    //     &NetworkSync { unique_id: 0 },
-    //     assets.load("player_pointer.png"),
-    // );
 }
 
 fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>) {

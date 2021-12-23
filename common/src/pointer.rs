@@ -3,13 +3,15 @@ use crate::game::{Movable, PlayerControllable};
 use crate::protocol::NetworkSync;
 use bevy::prelude::*;
 
+#[derive(Clone, Copy)]
+pub struct Location(Vec2);
+
 #[derive(Bundle)]
 pub struct PlayerPointer {
     control: PlayerControllable,
     movable: Movable,
     network_sync: NetworkSync,
-    #[cfg(feature = "headless")]
-    location: Transform,
+    location: Location,
     #[cfg(not(feature = "headless"))]
     #[bundle]
     sprite: SpriteBundle,
@@ -18,9 +20,7 @@ pub struct PlayerPointer {
 pub fn handle_pointer_spawns(
     mut commands: Commands,
     mut reader: EventReader<ServerEvent>,
-    #[cfg(not(feature = "headless"))]
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>,
+    #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for event in reader.iter() {
         match event {
@@ -33,7 +33,6 @@ pub fn handle_pointer_spawns(
                     owner,
                     location,
                     netsync,
-                    asset_server.load("player_pointer.png"),
                 );
             }
             _ => {}
@@ -44,12 +43,10 @@ pub fn handle_pointer_spawns(
 impl PlayerPointer {
     pub fn spawn(
         commands: &mut Commands,
-        #[cfg(not(feature = "headless"))]
-        materials: &mut ResMut<Assets<ColorMaterial>>,
+        #[cfg(not(feature = "headless"))] materials: &mut ResMut<Assets<ColorMaterial>>,
         owner: &PlayerId,
         location: &Vec2,
         netsync: &NetworkSync,
-        texture_handle: Handle<TextureAtlas>,
     ) -> Entity {
         info!("Pointer spawning!");
 
@@ -58,8 +55,7 @@ impl PlayerPointer {
                 control: PlayerControllable::new(*owner),
                 movable: Movable::new(*location),
                 network_sync: *netsync,
-                #[cfg(feature = "headless")]
-                location: Transform::from_xyz(location.x, location.y, 0.0),
+                location: Location(*location),
                 #[cfg(not(feature = "headless"))]
                 sprite: SpriteBundle {
                     sprite: Sprite::new(Vec2::new(10.0, 10.0)),
@@ -69,13 +65,5 @@ impl PlayerPointer {
                 },
             })
             .id()
-
-        // sprite: SpriteSheetBundle {
-        //     sprite: TextureAtlasSprite {
-        //         ..Default::default()
-        //     },
-        //     texture_atlas: texture_handle.clone(),
-        //     ..Default::default()
-        // }
     }
 }
