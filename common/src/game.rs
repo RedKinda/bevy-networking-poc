@@ -1,8 +1,10 @@
+use bevy::ecs::schedule::ShouldRun;
 use bevy::prelude::*;
 use serde::{Serialize, Deserialize};
 use crate::events::{PlayerCommand, PlayerId, ServerEvent};
 use crate::errors::*;
 use crate::pointer::*;
+use crate::graphics::*;
 
 const POINTER_SPEED: u64 = 100;
 
@@ -46,21 +48,46 @@ impl PlayerControllable {
     }
 }
 
+#[derive(Clone)]
 pub struct GameInfo {
-    pub is_network_authority: bool
+    pub is_network_authority: bool,
+    pub headless: bool
 }
 
+pub struct GameEnginePlugin {
+    pub settings: GameInfo
+}
 
-pub struct GameEnginePlugin {}
+impl Default for GameEnginePlugin {
+    fn default() -> Self {
+        GameEnginePlugin{
+            settings: GameInfo{ is_network_authority: false, headless: false}
+        }
+    }
+}
 
 impl Plugin for GameEnginePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system(move_movable.system())
             .add_system(handle_pointer_spawns.system());
 
+        app.add_system_set(SystemSet::new()
+            .with_run_criteria(headless_condition.system())
+            .with_system(add_sprites_to_graphicals.system())
+        );
+
         app.add_event::<ServerEvent>();
 
-        app.insert_resource::<GameInfo>(GameInfo{ is_network_authority: false});
+        app.insert_resource::<GameInfo>(self.settings.clone());
+        // app.add_asset::<ColorMaterial>();
+        info!("Included game engine plugin!")
+    }
+}
+
+fn headless_condition(settings: Res<GameInfo>) -> ShouldRun {
+    match settings.headless {
+        true => ShouldRun::YesAndCheckAgain,
+        false => ShouldRun::NoAndCheckAgain
     }
 }
 
@@ -68,7 +95,7 @@ fn move_movable(mut query: Query<(&mut Movable, &mut Transform)>, time: Res<Time
     let delta = time.delta_seconds_f64() as f32;
     for (mut mv, mut transform) in query.iter_mut() {
         if mv.active {
-            //debug!(movable = ?mv, transform = ?transform);
+            info!(movable = ?mv, transform = ?transform);
             let target_point = mv.to_dumb_vec3();
             // info!(distance = transform.translation.distance(target_point), can_travel =  delta * (mv.speed as f32));
             if transform.translation.distance(target_point) <= delta * (mv.speed as f32) {

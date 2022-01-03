@@ -6,6 +6,7 @@ pub mod game;
 pub mod protocol;
 pub mod pointer;
 pub mod errors;
+pub mod graphics;
 
 #[cfg(target_arch = "wasm32")]
 pub use bevy_webgl2;
@@ -35,11 +36,3 @@ pub fn get_random() -> u32 {
     rand::random::<u32>()
 }
 
-
-pub fn is_headless() -> bool {
-    #[cfg(feature = "headless")]
-    return true;
-
-    #[cfg(not(feature = "headless"))]
-    return false;
-}

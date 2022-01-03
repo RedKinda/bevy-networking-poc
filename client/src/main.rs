@@ -1,9 +1,10 @@
 use common::bevy::prelude::*;
 use common::bevy_networking_turbulence::{NetworkEvent, NetworkResource, NetworkingPlugin};
 use common::events::*;
-use common::game::{Movable, PlayerControllable};
+use common::game::{GameInfo, Movable, PlayerControllable};
 use common::protocol::*;
 use std::net::SocketAddr;
+use common::bevy::log::{Level, LogSettings};
 
 pub fn main() {
     let mut app = App::build();
@@ -16,7 +17,7 @@ pub fn main() {
             auto_heartbeat_ms: None, //Some(2000),
             heartbeats_and_timeouts_timestep_in_seconds: None,
         })
-        .add_plugin(common::game::GameEnginePlugin {});
+        .add_plugin(common::game::GameEnginePlugin::default());
 
     // when building for Web, use WebGL2 rendering
     #[cfg(target_arch = "wasm32")]
@@ -25,6 +26,7 @@ pub fn main() {
     app.add_startup_system(startup.system());
 
     app.insert_resource(common::protocol::ClientIdentification::new(0));
+    app.insert_resource(LogSettings{ filter: "".to_string(), level: Level::DEBUG });
 
     app.add_system(capture_clicks.system())
         .add_system(log_connectivity.system())
@@ -35,10 +37,10 @@ pub fn main() {
     app.run();
 }
 
-fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>) {
+fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>, info: Res<GameInfo>) {
     network_setup(&mut net);
 
-    if common::is_headless() {
+    if info.headless {
         warn!("Client is running headless!")
     }
 

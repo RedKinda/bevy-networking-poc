@@ -2,6 +2,7 @@ use crate::events::{PlayerId, ServerEvent};
 use crate::game::{Movable, PlayerControllable};
 use crate::protocol::NetworkSync;
 use bevy::prelude::*;
+use crate::graphics::Graphical;
 
 #[derive(Clone, Copy)]
 pub struct Location(Vec2);
@@ -12,15 +13,12 @@ pub struct PlayerPointer {
     movable: Movable,
     network_sync: NetworkSync,
     location: Location,
-    #[cfg(not(feature = "headless"))]
-    #[bundle]
-    sprite: SpriteBundle,
+    graphical: Graphical
 }
 
 pub fn handle_pointer_spawns(
     mut commands: Commands,
     mut reader: EventReader<ServerEvent>,
-    #[cfg(not(feature = "headless"))] mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for event in reader.iter() {
         match event {
@@ -28,8 +26,6 @@ pub fn handle_pointer_spawns(
                 info!("Player pointer locally spawned!");
                 PlayerPointer::spawn(
                     &mut commands,
-                    #[cfg(not(feature = "headless"))]
-                    &mut materials,
                     owner,
                     location,
                     netsync,
@@ -43,7 +39,7 @@ pub fn handle_pointer_spawns(
 impl PlayerPointer {
     pub fn spawn(
         commands: &mut Commands,
-        #[cfg(not(feature = "headless"))] materials: &mut ResMut<Assets<ColorMaterial>>,
+        // materials: &mut ResMut<Assets<ColorMaterial>>,
         owner: &PlayerId,
         location: &Vec2,
         netsync: &NetworkSync,
@@ -56,13 +52,10 @@ impl PlayerPointer {
                 movable: Movable::new(*location),
                 network_sync: *netsync,
                 location: Location(*location),
-                #[cfg(not(feature = "headless"))]
-                sprite: SpriteBundle {
-                    sprite: Sprite::new(Vec2::new(10.0, 10.0)),
-                    material: materials.add(ColorMaterial::color(Color::ORANGE)),
-                    transform: Transform::from_translation(location.extend(0.0)),
-                    ..Default::default()
-                },
+                graphical: Graphical {
+                    texture_id: "player_pointer.png".to_string(),
+                    material: None
+                }
             })
             .id()
     }

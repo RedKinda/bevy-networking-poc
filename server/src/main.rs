@@ -12,7 +12,6 @@ use common::bevy_networking_turbulence::{
 use common::events::*;
 use common::game::{validate_player_command, GameInfo, Movable, PlayerControllable};
 use common::get_random;
-use common::pointer::PlayerPointer;
 use common::protocol::{ClientIdentification, NetworkSync};
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -40,7 +39,7 @@ pub fn main() {
         })
         .add_plugin(LogPlugin::default())
         .add_plugin(AssetPlugin::default())
-        .add_plugin(common::game::GameEnginePlugin {})
+        .add_plugin(common::game::GameEnginePlugin { settings: GameInfo { is_network_authority: true, headless: true } })
         .add_plugin(InternalPlugin {});
 
     app.add_startup_system(startup.system());
@@ -54,16 +53,15 @@ pub fn main() {
     app.run();
 }
 
-fn startup(mut net: ResMut<NetworkResource>, mut game_info: ResMut<GameInfo>) {
+fn startup(mut net: ResMut<NetworkResource>, game_info: ResMut<GameInfo>) {
     common::protocol::network_setup(&mut net);
-    game_info.is_network_authority = true;
 
     let address = common::bevy_networking_turbulence::find_my_ip_address().unwrap();
 
     let server_address = SocketAddr::new(address, common::SERVER_PORT);
     info!("Server listening on {}", server_address);
 
-    if common::is_headless() {
+    if game_info.headless {
         info!("Server is headless");
     } else {
         info!("Server is NOT headless!");

@@ -24,4 +24,3 @@ bevy_webgl2 = "0.5"
 getrandom = { version="0.2", features=["wasm-bindgen"] }
 
 [features]
-headless = []
