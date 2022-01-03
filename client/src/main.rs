@@ -1,7 +1,7 @@
 use common::bevy::prelude::*;
 use common::bevy_networking_turbulence::{NetworkEvent, NetworkResource, NetworkingPlugin};
 use common::events::*;
-use common::game::{GameInfo, Movable, PlayerControllable};
+use common::game::{GameInfo, Location, Movable, PlayerControllable};
 use common::protocol::*;
 use std::net::SocketAddr;
 use common::bevy::log::{Level, LogSettings};
@@ -55,7 +55,7 @@ fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>, info: Res<G
 }
 
 fn send_command(mut net: ResMut<NetworkResource>, command: PlayerCommand) {
-    debug!(
+    info!(
         "Sending command {}",
         common::serde_form::to_string(&command).unwrap()
     );
@@ -72,7 +72,7 @@ fn log_connectivity(mut reader: EventReader<NetworkEvent>) {
                 warn!("Handle {} disconnected!", handle)
             }
             NetworkEvent::Packet(handle, packet) => {
-                debug!(
+                info!(
                     "Got a packet: {} fron handle {}",
                     String::from_utf8_lossy(packet),
                     handle
@@ -117,7 +117,7 @@ fn receive_server_events(mut net: ResMut<NetworkResource>, mut writer: EventWrit
 
 fn handle_movement_changes(
     mut events: EventReader<ServerEvent>,
-    mut query: Query<(&NetworkSync, &mut Movable, &mut Transform)>,
+    mut query: Query<(&NetworkSync, &mut Movable, &mut Location)>,
 ) {
     for event in events.iter() {
         if let ServerEvent::EntityMovementChange(netsync, movable, pos) = event {
@@ -126,9 +126,8 @@ fn handle_movement_changes(
                 .find(|unit| unit.0.unique_id == netsync.unique_id)
             {
                 current_movable.update(*movable);
-                current_transform.translation.x = pos.x;
-                current_transform.translation.y = pos.y;
-                current_transform.translation.z = pos.z;
+                current_transform.x = pos.x;
+                current_transform.y = pos.y;
             } else {
                 warn!(msg = "Movement changed but there is no corresponding netsync present", netsync = ?netsync);
             }
@@ -148,7 +147,7 @@ fn capture_clicks(
         let position = win
             .cursor_position()
             .expect("Mouse was clicked, cursor should have position");
-        debug!("Click detected at {},{}", position.x, position.y);
+        info!("Click detected at {},{}", position.x, position.y);
         if let Some(pointer) = my_pointer
             .iter()
             .find(|(_, ctrl)| ctrl.owner == identity.player_id)

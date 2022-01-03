@@ -2,10 +2,9 @@ use crate::events::{PlayerId, ServerEvent};
 use crate::game::{Movable, PlayerControllable};
 use crate::protocol::NetworkSync;
 use bevy::prelude::*;
+use crate::game::Location;
 use crate::graphics::Graphical;
 
-#[derive(Clone, Copy)]
-pub struct Location(Vec2);
 
 #[derive(Bundle)]
 pub struct PlayerPointer {

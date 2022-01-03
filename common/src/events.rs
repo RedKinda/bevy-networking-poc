@@ -21,5 +21,5 @@ pub enum PlayerCommand {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum ServerEvent {
     PointerSpawn(NetworkSync, PlayerId, Vec2),
-    EntityMovementChange(NetworkSync, Movable, Vec3),
+    EntityMovementChange(NetworkSync, Movable, Vec2),
 }

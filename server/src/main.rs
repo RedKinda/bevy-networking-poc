@@ -10,7 +10,7 @@ use common::bevy_networking_turbulence::{
     ConnectionHandle, NetworkEvent, NetworkResource, NetworkingPlugin,
 };
 use common::events::*;
-use common::game::{validate_player_command, GameInfo, Movable, PlayerControllable};
+use common::game::{validate_player_command, GameInfo, Movable, PlayerControllable, Location};
 use common::get_random;
 use common::protocol::{ClientIdentification, NetworkSync};
 use std::net::SocketAddr;
@@ -171,20 +171,20 @@ fn handle_client_move_commands(
 
      */
 
-    command_queue.iter().for_each(|cmd| {
-        if let PlayerCommand::PointerMoveChange(unit_id, target_movable) = cmd.1 {
+    command_queue.iter().for_each(|(player_id, controllable)| {
+        if let PlayerCommand::PointerMoveChange(unit_id, target_movable) = controllable {
             //info!(target_unit = unit_id, query = ?query.iter_mut().collect::<Vec<(Mut<'_, Movable>, Mut<'_, PlayerControllable>, &NetworkSync)>>());
             if let Some(mut unit) = query.iter_mut().find(|unit| unit.2.unique_id == unit_id.unique_id) {
-                match validate_player_command(cmd.0, &unit.1, cmd.1) {
+                match validate_player_command(*player_id, &unit.1, *controllable) {
                     Ok(_) => {
-                        unit.0.update(target_movable);
+                        unit.0.update(*target_movable);
                     }
                     Err(e) => {
                         warn!("{}", e);
                     }
                 }
             } else {
-                warn!(msg = "Player tried to move unit X which is not movable or does not exist", player = cmd.0, unit = ?unit_id);
+                warn!(msg = "Player tried to move unit X which is not movable or does not exist", player = player_id, unit = ?unit_id);
             }
         }
 
@@ -198,13 +198,13 @@ fn broadcast_server_event(event_writer: &mut EventWriter<ServerEvent>, event: Se
 }
 
 fn sync_movable(
-    mut to_sync: Query<(&NetworkSync, &Movable, &Transform), (Changed<Movable>, With<NetworkSync>)>,
+    mut to_sync: Query<(&NetworkSync, &Movable, &Location), (Changed<Movable>, With<NetworkSync>)>,
     mut server_events: EventWriter<ServerEvent>,
 ) {
-    for (netsync, &movable, &transform) in to_sync.iter_mut() {
+    for (netsync, &movable, &location) in to_sync.iter_mut() {
         broadcast_server_event(
             &mut server_events,
-            ServerEvent::EntityMovementChange(*netsync, movable, transform.translation),
+            ServerEvent::EntityMovementChange(*netsync, movable, *location),
         );
     }
 }

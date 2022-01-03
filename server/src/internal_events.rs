@@ -4,7 +4,7 @@ use common::bevy::prelude::{IntoSystem, ResMut};
 use common::bevy_networking_turbulence::NetworkResource;
 use common::events::{GameEvent, ServerEvent};
 use common::events::ServerEvent::PointerSpawn;
-use common::game::{Movable, PlayerControllable};
+use common::game::{Location, Movable, PlayerControllable};
 use common::protocol::{ClientIdentification, MetaInformation, NetworkSync};
 use crate::{broadcast_server_event, ConnectionHandle, EventReader, EventWriter, Query, Transform};
 
@@ -52,17 +52,17 @@ fn spawn_point_on_player_connect(
 
 fn sync_pointers_on_connect(
     mut reader: EventReader<Internal>,
-    pointers: Query<(&NetworkSync, &Movable, &Transform, &PlayerControllable)>,
+    pointers: Query<(&NetworkSync, &Movable, &Location, &PlayerControllable)>,
     mut net: ResMut<NetworkResource>
 ) {
     for event in reader.iter() {
         if let Internal::PlayerConnected(handle, _id) = event {
-            for (nsync, movable, transform, player) in pointers.iter() {
+            for (nsync, movable, location, player) in pointers.iter() {
                 net.connections.get_mut(&handle).unwrap().channels().unwrap().send::<GameEvent>(GameEvent::ServerUpdate(ServerEvent::PointerSpawn(
-                    nsync.clone(), player.owner, Vec2::from(transform.translation)
+                    nsync.clone(), player.owner, **location
                 )));
                 net.connections.get_mut(&handle).unwrap().channels().unwrap().send::<GameEvent>(GameEvent::ServerUpdate(ServerEvent::EntityMovementChange(
-                    nsync.clone(), *movable, transform.translation
+                    nsync.clone(), *movable, **location
                 )));
             }
         }
