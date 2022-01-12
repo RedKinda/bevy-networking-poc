@@ -3,7 +3,8 @@ use common::bevy_networking_turbulence::{NetworkEvent, NetworkResource, Networki
 use common::events::*;
 use common::game::{GameInfo, Location, Movable, PlayerControllable};
 use common::protocol::*;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
+use std::str::FromStr;
 use common::bevy::log::{Level, LogSettings};
 
 pub fn main() {
@@ -18,10 +19,6 @@ pub fn main() {
             heartbeats_and_timeouts_timestep_in_seconds: None,
         })
         .add_plugin(common::game::GameEnginePlugin::default());
-
-    // when building for Web, use WebGL2 rendering
-    #[cfg(target_arch = "wasm32")]
-    app.add_plugin(common::bevy_webgl2::WebGL2Plugin);
 
     app.add_startup_system(startup.system());
 
@@ -46,7 +43,8 @@ fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>, info: Res<G
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     let address = SocketAddr::new(
-        common::bevy_networking_turbulence::find_my_ip_address().unwrap(),
+        //common::bevy_networking_turbulence::find_my_ip_address().unwrap(),
+        IpAddr::from_str("192.168.0.102").unwrap(),
         common::SERVER_PORT,
     );
 

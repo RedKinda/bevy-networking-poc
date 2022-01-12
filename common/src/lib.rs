@@ -8,8 +8,6 @@ pub mod pointer;
 pub mod errors;
 pub mod graphics;
 
-#[cfg(target_arch = "wasm32")]
-pub use bevy_webgl2;
 
 /*fn main() {
     //bevy::info!("hello world")
@@ -19,6 +17,7 @@ pub use bevy_webgl2;
  */
 
 pub const SERVER_PORT: u16 = 15678;
+pub const SERVER_WEBRTC_PORT: u16 = 15679;
 
 
 #[cfg(target_arch = "wasm32")]
