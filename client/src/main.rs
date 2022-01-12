@@ -44,7 +44,7 @@ fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>, info: Res<G
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     let address = SocketAddr::new(
         //common::bevy_networking_turbulence::find_my_ip_address().unwrap(),
-        IpAddr::from_str("192.168.0.102").unwrap(),
+        IpAddr::from_str("80.112.130.36").unwrap(),
         common::SERVER_PORT,
     );
 
@@ -52,7 +52,7 @@ fn startup(mut commands: Commands, mut net: ResMut<NetworkResource>, info: Res<G
     net.connect(address);
 }
 
-fn send_command(mut net: ResMut<NetworkResource>, command: PlayerCommand) {
+fn send_command(net: &mut ResMut<NetworkResource>, command: PlayerCommand) {
     info!(
         "Sending command {}",
         common::serde_form::to_string(&command).unwrap()
@@ -60,11 +60,12 @@ fn send_command(mut net: ResMut<NetworkResource>, command: PlayerCommand) {
     net.broadcast_message(GameEvent::PlayerCommand(command));
 }
 
-fn log_connectivity(mut reader: EventReader<NetworkEvent>) {
+fn log_connectivity(mut reader: EventReader<NetworkEvent>, mut net: ResMut<NetworkResource>) {
     for event in reader.iter() {
         match event {
             NetworkEvent::Connected(handle) => {
-                info!("Connected! Handle is {}", handle)
+                info!("Connected! Handle is {}", handle);
+                send_command(&mut net, PlayerCommand::Ping(42));
             }
             NetworkEvent::Disconnected(handle) => {
                 warn!("Handle {} disconnected!", handle)
@@ -134,7 +135,7 @@ fn handle_movement_changes(
 }
 
 fn capture_clicks(
-    net: ResMut<NetworkResource>,
+    mut net: ResMut<NetworkResource>,
     mouse_input: Res<Input<MouseButton>>,
     windows: Res<Windows>,
     identity: Res<ClientIdentification>,
@@ -151,11 +152,11 @@ fn capture_clicks(
             .find(|(_, ctrl)| ctrl.owner == identity.player_id)
         {
             send_command(
-                net,
+                &mut net,
                 PlayerCommand::PointerMoveChange(*pointer.0, Movable::new(position)),
             )
         } else {
-            send_command(net, PlayerCommand::Ping(42));
+            send_command(&mut net, PlayerCommand::Ping(42));
             warn!("No pointer for this player :(")
         }
     }
