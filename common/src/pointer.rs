@@ -2,7 +2,6 @@ use crate::events::{PlayerId, ServerEvent};
 use crate::game::{Movable, PlayerControllable};
 use crate::protocol::NetworkSync;
 use bevy::prelude::*;
-use bevy_ecs::prelude::*;
 use crate::game::Location;
 use crate::graphics::Graphical;
 

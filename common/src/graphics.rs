@@ -11,9 +11,8 @@ pub struct Graphical {
 pub fn add_sprites_to_graphicals(
     mut commands: Commands,
     mut added: Query<(Entity, &Graphical, &Location), (With<Graphical>, Without<Sprite>)>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
-    mut windows: Res<Windows>
+    windows: Res<Windows>
 ) {
     let win = windows.get_primary().expect("no primary window");
     for (entity, graphical, location) in added.iter_mut() {
@@ -36,7 +35,7 @@ pub fn add_sprites_to_graphicals(
 
 }
 
-pub fn location_to_transform(mut query: Query<(&Location, &mut Transform), Changed<Location>>, mut windows: Res<Windows>) {
+pub fn location_to_transform(mut query: Query<(&Location, &mut Transform), Changed<Location>>, windows: Res<Windows>) {
     let win = windows.get_primary().expect("no primary window");
     for (location, mut transform) in query.iter_mut() {
         let mut loc = location.clone();
