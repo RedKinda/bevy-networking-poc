@@ -74,7 +74,7 @@ impl ClientIdentification {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Component)]
 pub struct NetworkSync {
     pub unique_id: NetworkObjectId,
 }

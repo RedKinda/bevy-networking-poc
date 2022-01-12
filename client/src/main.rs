@@ -7,7 +7,7 @@ use std::net::SocketAddr;
 use common::bevy::log::{Level, LogSettings};
 
 pub fn main() {
-    let mut app = App::build();
+    let mut app = App::new();
 
     app.add_plugins(DefaultPlugins)
         .add_plugin(NetworkingPlugin {

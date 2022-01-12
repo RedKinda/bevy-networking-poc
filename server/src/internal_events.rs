@@ -1,4 +1,4 @@
-use common::bevy::app::{AppBuilder, Plugin};
+use common::bevy::app::{App, Plugin};
 use common::bevy::math::Vec2;
 use common::bevy::prelude::{IntoSystem, ResMut};
 use common::bevy_networking_turbulence::NetworkResource;
@@ -6,7 +6,7 @@ use common::events::{GameEvent, ServerEvent};
 use common::events::ServerEvent::PointerSpawn;
 use common::game::{Location, Movable, PlayerControllable};
 use common::protocol::{ClientIdentification, MetaInformation, NetworkSync};
-use crate::{broadcast_server_event, ConnectionHandle, EventReader, EventWriter, Query, Transform};
+use crate::{broadcast_server_event, ConnectionHandle, EventReader, EventWriter, Query};
 
 pub enum Internal {
     PlayerConnected(ConnectionHandle, ClientIdentification)
@@ -15,7 +15,7 @@ pub enum Internal {
 pub struct InternalPlugin {}
 
 impl Plugin for InternalPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_event::<Internal>();
         app.add_system(handle_new_player_connections.system())
             .add_system(spawn_point_on_player_connect.system())

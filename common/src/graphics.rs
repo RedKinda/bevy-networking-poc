@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use std::default::Default;
 use crate::game::Location;
 
+#[derive(Component)]
 pub struct Graphical {
     pub(crate) texture_id: String,
     pub material: Option<ColorMaterial>,
@@ -9,9 +11,8 @@ pub struct Graphical {
 pub fn add_sprites_to_graphicals(
     mut commands: Commands,
     mut added: Query<(Entity, &Graphical, &Location), (With<Graphical>, Without<Sprite>)>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
-    mut windows: Res<Windows>
+    windows: Res<Windows>
 ) {
     let win = windows.get_primary().expect("no primary window");
     for (entity, graphical, location) in added.iter_mut() {
@@ -20,11 +21,11 @@ pub fn add_sprites_to_graphicals(
         loc.x -= win.width() / 2.0;
         loc.y -= win.height() / 2.0;
         let sprite = SpriteBundle {
-            material: materials.add(
-                ColorMaterial{
-                    color: Color::ORANGE,
-                    texture: Some(asset_server.load(graphical.texture_id.as_str()))
-                }),
+            texture: asset_server.load(graphical.texture_id.as_str()),
+            sprite: Sprite {
+                color: Color::ORANGE,
+                ..Default::default()
+            },
             transform: Location::to_transform(&loc),
             ..Default::default()
         };
@@ -34,7 +35,7 @@ pub fn add_sprites_to_graphicals(
 
 }
 
-pub fn location_to_transform(mut query: Query<(&Location, &mut Transform), Changed<Location>>, mut windows: Res<Windows>) {
+pub fn location_to_transform(mut query: Query<(&Location, &mut Transform), Changed<Location>>, windows: Res<Windows>) {
     let win = windows.get_primary().expect("no primary window");
     for (location, mut transform) in query.iter_mut() {
         let mut loc = location.clone();
