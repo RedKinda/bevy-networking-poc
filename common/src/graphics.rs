@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use std::default::Default;
 use crate::game::Location;
 
+#[derive(Component)]
 pub struct Graphical {
     pub(crate) texture_id: String,
     pub material: Option<ColorMaterial>,
@@ -20,11 +22,11 @@ pub fn add_sprites_to_graphicals(
         loc.x -= win.width() / 2.0;
         loc.y -= win.height() / 2.0;
         let sprite = SpriteBundle {
-            material: materials.add(
-                ColorMaterial{
-                    color: Color::ORANGE,
-                    texture: Some(asset_server.load(graphical.texture_id.as_str()))
-                }),
+            texture: asset_server.load(graphical.texture_id.as_str()),
+            sprite: Sprite {
+                color: Color::ORANGE,
+                ..Default::default()
+            },
             transform: Location::to_transform(&loc),
             ..Default::default()
         };

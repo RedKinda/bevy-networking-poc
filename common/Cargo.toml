@@ -6,21 +6,24 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy_networking_turbulence = "0.3.3"
+bevy_networking_turbulence = { path="../bevy_networking_turbulence"}
 serde = "1.0"
 serde_json = "1.0"
 thiserror = "1.0"
 
 # Dependencies for native only.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-bevy = { version = "0.5", default-features = false, features = ["bevy_gltf", "bevy_winit", "render", "png", "bevy_wgpu", "dynamic"] }
+bevy = { version = "0.6", default-features = false, features = ["bevy_gltf", "bevy_winit", "render", "png", "dynamic", "wayland"] }
+bevy_ecs = "0.6.0"
+bevy_ecs_macros = "0.6.0"
 rand = "0.8"
 [target.'cfg(target_os = "linux")'.dependencies]
-winit = { version = "0.24", features=["x11"]}
+winit = { version = "0.24", features=["wayland", "wayland-client"]}
+
 # Dependencies for WASM only.
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-bevy = { version = "0.5", default-features = false, features = ["bevy_gltf", "bevy_winit", "render", "png"] }
-bevy_webgl2 = "0.5"
-getrandom = { version="0.2", features=["wasm-bindgen"] }
+#[target.'cfg(target_arch = "wasm32")'.dependencies]
+#bevy = { version = "0.6", default-features = false, features = ["bevy_gltf", "bevy_winit", "render", "png"] }
+#bevy_webgl2 = "0.5"
+#getrandom = { version="0.2", features=["wasm-bindgen"] }
 
 [features]

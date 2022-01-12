@@ -10,7 +10,7 @@ use crate::graphics::*;
 
 const POINTER_SPEED: u64 = 100;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Component)]
 pub struct Location(pub Vec2);
 
 impl Location {
@@ -33,7 +33,7 @@ impl DerefMut for Location {
 }
 
 // Component definitions
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Component)]
 pub struct Movable {
     target_location: Location,
     active: bool,
@@ -60,7 +60,7 @@ impl Movable {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Component)]
 pub struct PlayerControllable {
     pub owner: PlayerId
 }
@@ -90,7 +90,7 @@ impl Default for GameEnginePlugin {
 }
 
 impl Plugin for GameEnginePlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system(move_movable.system())
             .add_system(handle_pointer_spawns.system());
 
